@@ -1,0 +1,166 @@
+{
+	"_version": "1.8.0",
+	"sap.app": {
+		"id": "ZSAMF005A.ZSAMF005A",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"applicationVersion": {
+			"version": "1.0.0"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"sourceTemplate": {
+			"id": "servicecatalog.connectivityComponentForManifest",
+			"version": "0.0.0"
+		},
+		"dataSources": {
+			"ZSAMF005A_PRPOSITION_CMD_SRV": {
+				"uri": "/sap/opu/odata/sap/ZSAMF005A_PRPOSITION_CMD_SRV/",
+				"type": "OData",
+				"settings": {
+					"localUri": "localService/ZSAMF005A_PRPOSITION_CMD_SRV/metadata.xml",
+					"annotations": []
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		},
+		"supportedThemes": [
+			"sap_hcb",
+			"sap_belize",
+			"sap_fiori_3"
+		]
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"rootView": {
+			"viewName": "ZSAMF005A.ZSAMF005A.view.App",
+			"type": "XML",
+			"async": true,
+			"id": "app"
+		},
+		"dependencies": {
+			"minUI5Version": "1.30.0",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.ui.layout": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "ZSAMF005A.ZSAMF005A.i18n.i18n",
+					"supportedLocales": [
+						"fr"
+					],
+					"fallbackLocale": "fr"
+				}
+			},
+			"": {
+				"type": "sap.ui.model.odata.v2.ODataModel",
+				"settings": {
+					"defaultOperationMode": "Server",
+					"defaultBindingMode": "TwoWay",
+					"defaultCountMode": "Inline",
+					"refreshAfterChange": false,
+					"loadMetadataAsync": true,
+					"useBatch": false,
+					"json": true
+				},
+				"dataSource": "ZSAMF005A_PRPOSITION_CMD_SRV",
+				"preload": true
+			}
+		},
+		"resources": {
+			"css": [
+				{
+					"uri": "css/style.css"
+				}
+			]
+		},
+		"routing": {
+			"config": {
+				"routerClass": "sap.m.routing.Router",
+				"viewType": "XML",
+				"async": true,
+				"viewPath": "ZSAMF005A.ZSAMF005A.view",
+				"controlAggregation": "pages",
+				"controlId": "app",
+				"clearControlAggregation": false,
+				"bypassed": {
+					"target": "notFound"
+				}
+			},
+			"routes": [
+				{
+					"name": "RouteOrdersList",
+					"pattern": "",
+					"target": [
+						"TargetOrdersList"
+					]
+				},
+				{
+					"name": "RouteOrderDetails",
+					"pattern": "order/{orderNumber}",
+					"target": [
+						"TargetOrderDetails"
+					]
+				}
+			],
+			"targets": {
+				"TargetOrdersList": {
+					"viewType": "XML",
+					"transition": "show",
+					"clearControlAggregation": false,
+					"viewId": "idOrdersList",
+					"viewName": "OrdersList",
+					"viewLevel": 1
+				},
+				"TargetOrderDetails": {
+					"viewType": "XML",
+					"transition": "slide",
+					"clearControlAggregation": false,
+					"viewId": "idOrderDetails",
+					"viewName": "OrderDetails",
+					"viewLevel": 2
+				},
+				"notFound": {
+					"id": "notFound",
+					"name": "NotFound",
+					"transition": "show",
+					"viewName": "NotFound",
+					"viewLevel": 2
+				},
+				"App": {
+					"viewType": "XML",
+					"viewName": "App",
+					"viewLevel": 1
+				}
+			}
+		}
+	},
+	"sap.platform.abap": {
+		"uri": "/sap/bc/ui5_ui5/sap/zsamf005a/webapp",
+		"_version": "1.1.0"
+	}
+}

@@ -1,0 +1,11 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+	<ViewSettingsDialog id="idViewSettingsDialogSort" confirm="handleSortDialogConfirm">
+		<sortItems>
+			<ViewSettingsItem text="{i18n>catalogText}" key="ActivityId" selected="true"/>
+			<ViewSettingsItem text="{i18n>itemText}" key="Matnr" />
+			<ViewSettingsItem text="{i18n>wantedQtyText}" key="Menge" />
+			<ViewSettingsItem text="{i18n>physicalStockText}" key="Labst" />
+			<ViewSettingsItem text="{i18n>couverageDaysText}" key="NbjCouverture" />
+		</sortItems>
+	</ViewSettingsDialog>
+</core:FragmentDefinition>

@@ -1,0 +1,171 @@
+<core:FragmentDefinition
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core"
+>
+	<Dialog
+		id="idActiveRangeProductsDialog"
+		title="{i18n>activeRangeProductsText}: {activeRangeModel>/selectedFamily/FamilleDescr}"
+	>
+		<tooltip></tooltip> <!-- sap.ui.core.TooltipBase -->
+		<dependents></dependents> <!-- sap.ui.core.Control, since 1.19 -->
+		
+		<!--{activeRangeModel>/activeRangeProducts>/}-->
+		<content>
+			<Table
+				id="idActiveRangeProductsTable"
+				items="{itemsModel>/}"
+				fixedLayout="false"
+				noDataText="">
+					<columns>
+						<Column vAlign="Middle" width="auto">
+							<Label design="Bold" text="{i18n>itemText}" />
+						</Column>
+						<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" vAlign="Middle">
+							<Label design="Bold" text="{i18n>stockText}" />
+						</Column>
+						<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" vAlign="Middle">
+							<Label design="Bold" text="{i18n>expectedText}" />
+						</Column>
+						<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" vAlign="Middle">
+							<Label design="Bold" text="{i18n>MRPQtyText}" />
+						</Column>
+						<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" vAlign="Middle">
+							<Label design="Bold" text="{i18n>wantedQtyText}" />
+						</Column>
+						<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" vAlign="Middle">
+							<Label design="Bold" text="{i18n>PEText}" />
+						</Column>
+					</columns>
+					<items>
+						<ColumnListItem vAlign="Middle">
+							<cells>
+								<HBox alignItems="Center" justifyContent="SpaceBetween">
+									<items>
+										<ObjectIdentifier 
+											title="{itemsModel>Maktx}"
+											text="{itemsModel>Matnr} | {itemsModel>Meins} &#13;&#10; {itemsModel>MtstbActuel}→{itemsModel>MtstbFutur}"
+										/>
+										<core:Icon
+											class="sapUiTinyMarginBegin"
+											size="1.2rem"
+											src="sap-icon://pushpin-off"
+											visible="{= ${itemsModel>Mrp} === true }"
+										/>
+									</items> 
+								</HBox>
+								<ObjectStatus
+									text="{
+										parts: [
+											'itemsModel>Labst',
+											'itemsModel>Meins'
+										],
+										formatter: '.formatter.parseStockIntoInteger'
+									}"
+									active="true"
+									state="{
+										path: 'itemsModel>Labst',
+										formatter: '.formatter.stockStateFormatter'
+									}"
+									press=".onObjectNumberPress"
+								/>
+								<Text 
+									text="{
+										parts: [
+											'itemsModel>Mng01',
+											'itemsModel>Meins'
+										],
+										formatter: '.formatter.parseExpectedIntoInteger'
+									}"
+								/>
+								<Text
+									text="{
+										parts: [
+											'itemsModel>ZzqteOrg',
+											'itemsModel>Meins'
+										],
+										formatter: '.formatter.parseMRPQtyIntoInteger'
+									}"
+								/>
+								<HBox alignItems="Center" justifyContent="SpaceAround">
+									<Input
+										class="sapUiTinyMarginEnd"
+										value="{
+											path: 'itemsModel>Menge',
+											type: 'sap.ui.model.type.Integer',
+											constraints: {
+												minimum:0
+											},
+											formatter: '.formatter.parseWantedQtyIntoInteger'
+										}"
+										width="4rem"
+										type="Number"
+										editable="{
+											parts: [
+												'itemsModel>QtyPenu',
+												'itemsModel>Editable',
+												'headerModel>Editable'
+											],
+											formatter: '.formatter.checkQtyInput'
+										}"
+										change=".onStockInputChanged"
+									/>
+									<Button
+										class="oDecrementButton"
+										icon="sap-icon://less"
+										press=".onDecrementPress"
+										type="Transparent"
+										enabled="{
+											parts: [
+												'itemsModel>Menge',
+												'itemsModel>Editable',
+												'headerModel>Editable'
+											],
+											formatter: '.formatter.checkQtyDecrement'
+										}"
+									/>
+									<Button
+										class="oIncrementButton"
+										icon="sap-icon://add"
+										press=".onIncrementPress"
+										type="Transparent"
+										enabled="{
+											parts: [
+												'itemsModel>QtyPenu',
+												'itemsModel>Editable',
+												'headerModel>Editable'
+											],
+											formatter: '.formatter.checkQtyIncrement'
+										}"
+									/>
+								</HBox>
+								<Text text="{itemsModel>PE}" />
+							</cells>
+						</ColumnListItem>
+					</items>
+					<tooltip></tooltip> <!-- sap.ui.core.TooltipBase -->
+					<dependents></dependents> <!-- sap.ui.core.Control, since 1.19 -->
+					<swipeContent></swipeContent> <!-- sap.ui.core.Control -->
+					<headerToolbar></headerToolbar> <!-- sap.m.Toolbar, since 1.16 -->
+					<infoToolbar></infoToolbar> <!-- sap.m.Toolbar, since 1.16 -->
+			</Table>
+		</content> <!-- sap.ui.core.Control -->
+		<subHeader></subHeader> <!-- sap.m.IBar, since 1.12.2 -->
+		<customHeader></customHeader> <!-- sap.m.IBar, since 1.15.1 -->
+		<beginButton>
+			<Button
+				id="idAddtoOrder"
+				text="{i18n>addtoOrderText}"
+				type="Accept"
+				press=""
+			/>
+		</beginButton>
+		<endButton>
+			<Button
+				id="idCloseActiveRangeProductsDialog"
+				text="{i18n>closeText}"
+				type="Default"
+				press=""
+			/>
+		</endButton>
+	</Dialog>
+</core:FragmentDefinition>

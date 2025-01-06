@@ -1,0 +1,9 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+	<ViewSettingsDialog confirm="handleSortDialogConfirm" sortDescending="true">
+		<sortItems>
+			<ViewSettingsItem text="{i18n>cmdNumberText}" key="Ebeln" />
+			<ViewSettingsItem text="{i18n>cmdTypeText}" key="Bsart" />
+			<ViewSettingsItem text="{i18n>deliveryDateText}" key="Eindt" selected="true" />
+		</sortItems>
+	</ViewSettingsDialog>
+</core:FragmentDefinition>

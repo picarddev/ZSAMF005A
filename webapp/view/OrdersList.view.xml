@@ -1,0 +1,174 @@
+<mvc:View 
+	controllerName="ZSAMF005A.ZSAMF005A.controller.OrdersList"
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:l="sap.ui.layout"
+	displayBlock="true"
+	height="100%"
+>
+	<Page id="idOrdersListPage" title="{i18n>appTitle}" showNavButton="true" navButtonPress="onNavBack" backgroundDesign="Solid" enableScrolling="false">
+		<content>
+			<l:FixFlex class="idFixFlexVertical">
+				<l:fixContent>
+					<HBox alignItems="Start" justifyContent="Center" backgroundDesign="Translucent">
+						<ObjectIdentifier title="{i18n>autorisedRollsText}" text="{analyticsModel>/authorizedRolls}" class="sapUiSmallMargin text-center">
+							<layoutData>
+								<FlexItemData baseSize="120px"/>
+							</layoutData>
+						</ObjectIdentifier>
+						<ObjectIdentifier title="{i18n>todayNbCartonText}" text="{analyticsModel>/cartonsToday}" class="sapUiSmallMargin text-center">
+							<layoutData>
+								<FlexItemData baseSize="190px"/>
+							</layoutData>
+						</ObjectIdentifier>
+						<ObjectIdentifier title="{i18n>todayNbRollText}" text="{analyticsModel>/rollsToday}" class="sapUiSmallMargin text-center">
+							<layoutData>
+								<FlexItemData baseSize="190px"/>
+							</layoutData>
+						</ObjectIdentifier>
+						<ObjectIdentifier
+							title="{i18n>todayOrderValueText}" 
+							text="{	
+								parts:[
+									'analyticsModel>/totalValueToday',
+									'analyticsModel>/totalValueTodayUnit'
+								],
+								type: 'sap.ui.model.type.Currency',
+								formatOptions: {
+									decimals: 2,
+									currencyCode: false
+								}
+							}" 
+							class="sapUiSmallMargin text-center"
+						>
+							<layoutData>
+								<FlexItemData baseSize="210px"/>
+							</layoutData>
+						</ObjectIdentifier>
+					</HBox>
+				</l:fixContent>
+				<l:flexContent>
+					<ScrollContainer
+						id="oScrollContainer"
+						horizontal="false"
+						vertical="true"
+						height="100%"
+						width="100%"
+					>
+						<Table id="idOrdersTable" 
+						growing="false"
+						items="{ 
+							path: '/headerCmdSet',
+							sorter: { path: 'Eindt', descending: true },
+							events: { dataReceived: '.calculateAnalytics' }
+						}"
+						fixedLayout="false"
+						alternateRowColors="true"
+						backgroundDesign="Translucent"
+						sticky="ColumnHeaders,HeaderToolbar"
+					>
+						<headerToolbar>
+							<OverflowToolbar>
+								<Title
+									text="{i18n>ordersTableTitle}"
+									level="H2"
+								/>
+								<ToolbarSpacer/>
+								<Button
+									tooltip="{i18n>sortText}"
+									icon="sap-icon://sort"
+									press=".handleSortButtonPressed"
+								/>
+							</OverflowToolbar>
+						</headerToolbar>
+						<columns>
+							<Column width="auto" vAlign="Middle">
+								<Label design="Bold" text="{i18n>cmdNumberText}" />
+							</Column>
+							<Column minScreenWidth="Tablet" demandPopin="true" hAlign="Center" vAlign="Middle">
+								<Label design="Bold" text="{i18n>dateBreakText}" wrapping="true" />
+							</Column>
+							<Column minScreenWidth="Tablet" demandPopin="true" hAlign="Center" vAlign="Middle">
+								<Label design="Bold" text="{i18n>orderDeliveryDateText}" />
+							</Column>
+							<!--<Column minScreenWidth="Tablet" demandPopin="true" hAlign="Center" vAlign="Middle">-->
+							<!--	<Label design="Bold" text="{i18n>platformeText}" />-->
+							<!--</Column>-->
+							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+								<Label design="Bold" text="{i18n>nbCartonText}" />
+							</Column>
+							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+								<Label design="Bold" text="{i18n>nbRollText}" />
+							</Column>
+							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+								<Label design="Bold" text="{i18n>orderValueText}" />
+							</Column>
+							<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+								<Label design="Bold" text="{i18n>orderStatusText}" />
+							</Column>
+							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+								<Label design="Bold" text="{i18n>artPenurieText}" />
+							</Column>
+							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+								<Label design="Bold" text="{i18n>artEcreteText}" />
+							</Column>
+						</columns>
+						<items>
+							<ColumnListItem vAlign="Middle" type="Navigation" press=".onPressCmdNav">
+								<cells>
+									<HBox alignItems="Center" justifyContent="SpaceBetween">
+										<ObjectIdentifier title="{Ebeln}" text="{Batxt}" />
+										<core:Icon
+											class="sapUiSmallMarginBegin"
+											size="1.2rem" src="sap-icon://primary-key"
+											visible="{
+												parts: [
+													'Editable',
+													'Guname'
+												],
+												formatter: '.formatter.displayKeyIcon'
+											}" />
+									</HBox>
+									<!--<Text text="{ path: 'DeliveryDate', type: 'sap.ui.model.type.DateTime', formatOptions: { pattern: 'dd MMMM yyyy \n HH:mm', UTC: true }}"/>-->
+									<Text 
+										text="{ path: 'Eindt0001', type: 'sap.ui.model.type.Date', formatOptions: { pattern: 'dd MMMM yyyy', UTC: true }} 
+											  &#13;&#10; 
+											  { path: 'WZeit', type: 'sap.ui.model.odata.type.Time', formatOptions: { pattern: 'HH:mm', UTC: true }}"
+										visible="{= ${Eindt0001} !== null }"
+									/>
+									<Text text="{ path: 'Eindt', type: 'sap.ui.model.type.Date', formatOptions: { pattern: 'dd MMMM yyyy' }}" />
+									<!--<Text text="{ path: 'Name1', type: 'sap.ui.model.type.String' }" />-->
+									<Text text="{ path: 'Zqtecar', type: 'sap.ui.model.type.Integer' }" />
+									<Text text="{ path: 'Zqteroll', type: 'sap.ui.model.type.Integer' }" />
+									<Text
+										text="{
+											parts: [
+												'Zzvaleur',
+												'Waers'
+											],
+											type: 'sap.ui.model.type.Currency',
+											formatOptions: {
+												decimals: 2,
+												currencyCode: false
+											}
+										}"
+									/>
+									<Text class="oOrderStatus" text="{ path: 'Statut', formatter: '.formatter.statusFormatter' }">
+										<customData>
+											<core:CustomData key="color" value="{ path: 'Statut', formatter: '.formatter.statusColorFormatter' }" writeToDom="true" />
+										</customData>
+									</Text>
+									<Text text="{ArtShortage} / {ArtTotal}"/>
+									<Text text="{ArtClipped} / {ArtTotal}"/>
+								</cells>
+							</ColumnListItem>
+						</items>
+					</Table>
+					</ScrollContainer>
+				</l:flexContent>
+			</l:FixFlex>
+		
+		</content>
+	</Page>
+</mvc:View>

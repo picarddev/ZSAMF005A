@@ -1,0 +1,16 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+	<ViewSettingsDialog id="idViewSettingsDialogFilter" confirm="handleFilterDialogConfirm">
+		<filterItems>
+			<ViewSettingsFilterItem
+				text="{i18n>deletedItemsText}"
+				key="deletedItems">
+				<items>
+					<ViewSettingsItem text="{i18n>notDeletedText}" key="notDeleted" />
+					<ViewSettingsItem text="{i18n>cleaningDeletionText}" key="cleaningDeletion" />
+					<ViewSettingsItem text="{i18n>clipppingDeletionText}" key="clipppingDeletion" />
+					<ViewSettingsItem text="{i18n>fioriDeletionText}" key="fioriDeletion" />
+				</items>
+			</ViewSettingsFilterItem>
+		</filterItems>
+	</ViewSettingsDialog>
+</core:FragmentDefinition>

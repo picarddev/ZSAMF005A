@@ -1,0 +1,349 @@
+<mvc:View
+	controllerName="ZSAMF005A.ZSAMF005A.controller.OrderDetails"
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core"
+	xmlns:mvc="sap.ui.core.mvc"
+	displayBlock="true"
+	height="100%"
+>
+	<Page title="{i18n>appTitle}" showNavButton="true" navButtonPress=".onNavBack" backgroundDesign="Solid" enableScrolling="false">
+		<content>
+			<HBox justifyContent="SpaceAround" alignContent="Center" alignItems="Center" backgroundDesign="Translucent">
+				<VBox class="sapUiSmallMargin">
+					<ObjectAttribute title="{i18n>todayNbCartonText}" text="{headerModel>ZqtecarToday}" class="sapUiSmallMarginBottom"/>
+					<ObjectAttribute title="{i18n>cmdNumberText}" text="{headerModel>Ebeln} - {headerModel>Batxt}" class="sapUiSmallMarginBottom"/>
+					<ObjectAttribute 
+						title="{i18n>dateText}"
+						text="{ path: 'headerModel>Eindt0001', type: 'sap.ui.model.type.Date', formatOptions: { pattern: 'dd MMMM yyyy', UTC: true }} / { path: 'headerModel>WZeit', type: 'sap.ui.model.odata.type.Time', formatOptions: { pattern: 'HH:mm', UTC: true }}"
+						visible="{= ${headerModel>Eindt0001} !== null }"
+					/>
+				</VBox>
+				<VBox class="sapUiSmallMargin">
+					<ObjectAttribute title="{i18n>todayNbRollText}" text="{headerModel>ZqterollToday}" class="sapUiSmallMarginBottom"/>
+					<ObjectAttribute title="{i18n>orderDeliveryDateText}"
+						text="{ path: 'headerModel>Eindt', type: 'sap.ui.model.type.Date', formatOptions: { pattern: 'dd MMMM yyyy' }}" class="sapUiSmallMarginBottom"/>
+					<HBox justifyContent="SpaceBetween">
+						<ObjectAttribute title="{i18n>nbCartonText}" text="{headerModel>Zqtecar}"/>
+						<ObjectAttribute title="{i18n>nbRollText}" text="{headerModel>Zqteroll}"/>
+					</HBox>
+				</VBox>
+				<VBox class="sapUiSmallMargin">
+					<ObjectAttribute title="{i18n>autorisedRollsText}" text="{headerModel>ZzrollAuto}" class="sapUiTinyMarginBottom"/>
+					<ObjectAttribute title="{i18n>platformeText}" text="{headerModel>Name1}" class="sapUiTinyMarginTop sapUiTinyMarginBottom"/>
+					<Text class="oOrderStatus" text="{ path: 'headerModel>Statut', formatter: '.formatter.statusFormatter' }">
+						<customData>
+							<core:CustomData
+								key="color"
+								value="{ 
+									path: 'headerModel>Statut',
+									type: 'sap.ui.model.type.String',
+									formatter: '.formatter.statusColorFormatter'
+								}"
+								writeToDom="true"
+							/>
+						</customData>
+					</Text>
+				</VBox>
+			</HBox>
+			<!--
+			<HBox justifyContent="End" backgroundDesign="Translucent" visible="{headerModel>Editable}">
+				<MultiInput
+					id="idProductsMultiInput"
+					class="sapUiSmallMarginEnd sapUiSmallMarginBottom"
+					placeholder="{i18n>searchText}"
+					valueHelpRequest=".onProductsSelectDialogRequested"
+					showSuggestion="false"
+					valueHelpOnly="true"
+					width="450px"
+				/>
+			</HBox>
+			-->
+			<IconTabBar
+				id="idOrderIconTabBar"
+				class="idOrderIconTabBar"
+				select="onTabSelected"
+				expanded="{device>/isNoPhone}"
+				headerBackgroundDesign="Translucent"
+				backgroundDesign="Translucent"
+				stretchContentHeight="false"
+				applyContentPadding="false"
+				expandable="false">
+				<content>
+					<ScrollContainer
+						id="oScrollContainer"
+						horizontal="false"
+						vertical="true"
+						height="calc(100% - 180px)"
+						width="100%"
+					>
+						<Table
+							id="idItemsTable"
+							items="{itemsModel>}"
+							growing="true"
+							growingScrollToLoad="true"
+							growingThreshold="15"
+							fixedLayout="false"
+							alternateRowColors="true"
+							sticky="HeaderToolbar,InfoToolbar,ColumnHeaders">
+							<headerToolbar>
+								<OverflowToolbar>
+									<Title text="{i18n>itemsTableTitle}" level="H2" visible="false"/>
+									<ToolbarSpacer/>
+									<!--<Button-->
+									<!--	text="{i18n>activeRangeText}"-->
+									<!--	press=".handleActiveRangeButtonPressed"-->
+									<!--	enabled="false"-->
+									<!--/>-->
+									<Button
+										tooltip="{i18n>sortText}"
+										icon="sap-icon://sort"
+										press=".handleSortButtonPressed"
+										visible="{= ${viewModel>/selectedTab} === 'orderItems' }"
+									/>
+									<Button
+										tooltip="{i18n>filterText}"
+										icon="sap-icon://filter"
+										press=".handleFilterButtonPressed"
+										visible="{= ${viewModel>/selectedTab} === 'orderItems' }"
+									/>
+									<Button
+										text="{i18n>deleteOrderText}"
+										type="Transparent"
+										press=".onDeleteOrder"
+										visible="{
+											parts: [
+												'viewModel>/selectedTab',
+												'headerModel>Statut',
+												'headerModel>Editable'
+											],
+											formatter: '.formatter.showDeleteButton'
+										}"
+									>
+										<layoutData>
+											<OverflowToolbarLayoutData priority="AlwaysOverflow" closeOverflowOnInteraction="false" />
+										</layoutData>
+									</Button>
+								</OverflowToolbar>
+							</headerToolbar>
+							<infoToolbar>
+								<OverflowToolbar id="vsdFilterBar" visible="false">
+									<Text id="vsdFilterLabel" />
+								</OverflowToolbar>
+							</infoToolbar>
+							<columns>
+								<Column vAlign="Middle" width="auto">
+									<Label design="Bold" text="{i18n>itemText}" />
+								</Column>
+								<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+									<Label design="Bold" text="{i18n>stockText}" />
+								</Column>
+								<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+									<Label design="Bold" text="{i18n>expectedText}" />
+								</Column>
+								<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+									<Label design="Bold" text="{i18n>metchStockText}" />
+								</Column>							
+								<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+									<Label design="Bold" text="{
+											parts: [
+												'i18n>salesForecastText',
+												'headerModel>Nbjour'
+											],
+											formatter: '.formatter.formatMessage'
+										}"
+									/>
+								</Column>
+								<Column minScreenWidth="XXLarge" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+									<Label design="Bold" text="{i18n>MRPQtyText}" />
+								</Column>
+								<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+									<Label design="Bold" text="{i18n>wantedQtyText}" />
+								</Column>
+								<Column minScreenWidth="XXLarge" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+									<Label design="Bold" text="{i18n>couverageDaysText}" />
+								</Column>
+								<Column minScreenWidth="XXLarge" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+									<Label design="Bold" text="{i18n>PEText}" />
+								</Column>
+							</columns>
+							<items>
+								<ColumnListItem id="idItemsColumnListItem" vAlign="Middle">
+									<cells>
+										<HBox alignItems="Center" justifyContent="SpaceBetween">
+											<items>
+												<ObjectIdentifier 
+													title="{itemsModel>Maktx}"
+													text="{
+														parts: [
+															'itemsModel>Matnr',
+															'itemsModel>Meins',
+															'itemsModel>MtstbActuel',
+															'itemsModel>MtstbFutur'
+														],
+														formatter: '.formatter.itemInfosFormatter'
+													}"
+												/>
+												<VBox class="sapUiTinyMarginBegin">
+													<core:Icon
+														class="sapUiSmallMarginBottom"
+														size="1.2rem"
+														src="sap-icon://pushpin-off"
+														visible="{= ${Mrp} === true }"
+													/>
+													<core:Icon
+														size="1.2rem"
+														src="sap-icon://delete"
+														visible="{= ${itemsModel>Loekz} !== '' }"
+														ariaLabelledBy="invisibleId"
+														tooltip="{itemsModel>Bezei}"
+														press=".handleDeletePopoverPress"
+													/>
+												</VBox>
+											</items> 
+										</HBox>
+										<ObjectStatus
+											text="{
+												parts: [
+													'itemsModel>Labst',
+													'itemsModel>MeinsBase'
+												],
+												formatter: '.formatter.parseStockIntoInteger'
+											}"
+											active="true"
+											state="{
+												path: 'itemsModel>Labst',
+												formatter: '.formatter.stockStateFormatter'
+											}"
+											press=".onObjectNumberPress"
+										/>
+										<Text 
+											text="{
+												parts: [
+													'itemsModel>Mng01',
+													'itemsModel>Meins'
+												],
+												formatter: '.formatter.parseExpectedIntoInteger'
+											}"
+										/>
+										<Text 
+											text="{
+												path: 'itemsModel>StockMerch',
+												formatter: '.formatter.parseMetchStockIntoInteger'
+											}"
+										/>
+										<Text
+											text="{
+												parts: [
+													'itemsModel>QtyRetour',
+													'itemsModel>NbjPrevision',
+													'itemsModel>MeinsBase'
+												],
+												formatter: '.formatter.parseSalesForecastIntoInteger'
+											}"
+										/>
+										<Text
+											text="{
+												parts: [
+													'itemsModel>ZzqteOrg',
+													'itemsModel>Meins'
+												],
+												formatter: '.formatter.parseMRPQtyIntoInteger'
+											}"
+										/>
+										<HBox alignItems="Center" justifyContent="SpaceAround">
+											<Input
+												class="sapUiTinyMarginEnd"
+												id="idStockInput"
+												fieldGroupIds="idStockInputs"
+												value="{
+													parts: [
+														'itemsModel>Menge'
+													],
+													formatter: '.formatter.parseWantedQtyIntoInteger'
+												}"
+												width="3.6rem"
+												type="number"
+												editable="{
+													parts: [
+														'itemsModel>Editable',
+														'headerModel>Editable',
+														'itemsModel>NotActivatable'
+													],
+													formatter: '.formatter.checkQtyInput'
+												}"
+												submit=".onStockInputChanged"
+												liveChange=".onStockInputLiveChanged"
+											/>
+											<Button
+												class="oDecrementButton"
+												icon="sap-icon://less"
+												press=".onDecrementPress"
+												type="Transparent"
+												enabled="{
+													parts: [
+														'itemsModel>Menge',
+														'itemsModel>Editable',
+														'headerModel>Editable'
+													],
+													formatter: '.formatter.checkQtyDecrement'
+												}"
+											/>
+											<Button
+												class="oIncrementButton"
+												icon="sap-icon://add"
+												press=".onIncrementPress"
+												type="Transparent"
+												enabled="{
+													parts: [
+														'itemsModel>Menge',
+														'itemsModel>QtyPenu',
+														'itemsModel>ZqteBloc',
+														'itemsModel>Editable',
+														'headerModel>Editable',
+														'itemsModel>NotActivatable'
+													],
+													formatter: '.formatter.checkQtyIncrement'
+												}"
+											/>
+										</HBox>
+										<Text
+											text="{
+												path: 'itemsModel>NbjCouverture',
+												formatter: '.formatter.parseCouverageDaysIntoInteger'
+											}"
+										/>
+										<Text text="{PE}" />
+									</cells>
+								</ColumnListItem>
+							</items>
+						</Table>
+					</ScrollContainer>
+				</content>
+				<items>
+					<IconTabFilter key="orderItems" text="{i18n>myOrder}" />
+					<IconTabFilter key="searchItems" text="{i18n>searchItems}" />
+				</items>
+			</IconTabBar>
+		</content>
+		<footer>
+			<OverflowToolbar>
+				<Button
+                    icon="sap-icon://alert"
+                    text="{= ${message>/}.length }"
+                    visible="true"
+                    type="Emphasized"
+                    press="onMessagePopoverPress"
+                />
+                <!--<Button-->
+                <!--    text="{i18n>activeRangeText}"-->
+                <!--    visible="true"-->
+                <!--    type="Default"-->
+                <!--    press=".onCommercialOperationPress"-->
+                <!--    ariaHasPopup="Dialog"-->
+                <!--/>-->
+                
+				<ToolbarSpacer/>
+			</OverflowToolbar>
+		</footer>
+	</Page>
+</mvc:View>
