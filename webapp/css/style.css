@@ -70,3 +70,20 @@ span[data-color="Grey"] {
 .idOrderIconTabBar .sapMITBContent {
 	height: 100%;
 }
+
+.updStyleHeader{
+	color: #c0392b !important; 
+    font-weight: bold;
+}
+.rotateIcon {
+    animation: rotate 2s linear infinite;
+}
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

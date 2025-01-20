@@ -5,10 +5,12 @@ sap.ui.define([
 	"sap/ui/core/Fragment",
 	"sap/m/MessageBox",
 	"sap/m/MessageToast",
-	"ZSAMF005A/ZSAMF005A/model/formatter"
-], function (Controller, JSONModel, ODataModel, Fragment, MessageBox, MessageToast, formatter) {
+	"ZSAMF005A/ZSAMF005A/model/formatter",
+	"sap/ui/model/Filter"
+], function (Controller, JSONModel, ODataModel, Fragment, MessageBox, MessageToast, formatter, Filter) {
 	"use strict";
-
+	//ibl+
+	var IsFistTime; // IBL 
 	return Controller.extend("ZSAMF005A.ZSAMF005A.controller.OrderDetails", {
 		formatter: formatter,
 
@@ -22,10 +24,10 @@ sap.ui.define([
 		 */
 		onInit: function () {
 			window.addEventListener('beforeunload', function (event) {
-			  event.preventDefault();
-			  return (event.returnValue = "");
+				event.preventDefault();
+				return (event.returnValue = "");
 			});
-			
+
 			// Get the service URL from the model defined in the manifest
 			var oOwner = this.getOwnerComponent(),
 				oModel = oOwner.getModel(),
@@ -87,11 +89,21 @@ sap.ui.define([
 				busy: false,
 				selectedTab: "orderItems"
 			}), "viewModel");
-			
+
+			oView.setModel(new JSONModel({
+				isOrderUpdating: false
+
+			}), "viewModel2");
 			// Init sort & filter ViewSettingsDialog
 			this._initViewSettingDialog();
+
+			//ibl+ onglet par défaut gamme active
+			this._oIconTabBar.setSelectedKey("ALL_ITEMS"); // "ibl+"
 		},
 
+		getRouter: function () {
+			return sap.ui.core.UIComponent.getRouterFor(this);
+		},
 		/* =========================================================== */
 		/* Business logic                                              */
 		/* =========================================================== */
@@ -148,7 +160,7 @@ sap.ui.define([
 				aSorters = [];
 
 			// Add sorter to the sorters' array
-			if(sPath === "ActivityId") {
+			if (sPath === "ActivityId") {
 				aSorters.push(
 					new sap.ui.model.Sorter("ActivityId", false),
 					new sap.ui.model.Sorter("FamilyId", false),
@@ -290,14 +302,34 @@ sap.ui.define([
 				oViewModel.setProperty("/selectedTab", "searchItems");
 				this._oOrderItems.setGrowing(false);
 				this.onProductsSelectDialogRequested(null);
+				this._toggleHierarchyNavigation(false); // ibl+
 				break;
 			case "orderItems":
-			default:
+				//ibl+
 				oViewModel.setProperty("/selectedTab", "orderItems");
 				this._oOrderItems.setGrowing(true);
 				this._aSearchedItems = [];
 				this._applyOrderItemsFilter();
+				this._toggleHierarchyNavigation(false);
+				this.byId("oIDSort").setVisible(true);
+				this.byId("oIDFiter").setVisible(true);
+				this.byId("oIDDelete").setVisible(true);
 				break;
+			default:
+				//ibl+ 
+				if ((this.iIndexGloal !== 0 && sKey === 'ALL_ITEMS')) {
+					//	this._BusyOn(); to addd oki??
+					// Update filter bar
+					//	this.byId("vsdFilterBar").setVisible(false);
+					this.byId("vsdFilterLabel").setText("");
+				}
+				this._applyOrderItemsFilter_new(); //add String Sorter arg to fix order/promo sort bug 29.08.2019
+				this._toggleHierarchyNavigation(true);
+				this.byId("vsdFilterLabel").setText("");
+				this.byId("oIDSort").setVisible(false);
+				this.byId("oIDFiter").setVisible(false);
+				this.byId("oIDDelete").setVisible(false);
+
 			}
 		},
 
@@ -320,7 +352,7 @@ sap.ui.define([
 				this._aSearchedItems.forEach(function (oItem) {
 					aFilters.push(new sap.ui.model.Filter("Matnr", sap.ui.model.FilterOperator.EQ, oItem.Matnr));
 				});
-				
+
 				// Apply filter settings
 				oBinding.filter(aFilters);
 
@@ -338,16 +370,16 @@ sap.ui.define([
 							"fioriDeletion": true
 						}
 					});
-	
+
 					// setTimeout(function () {
-						oFilterDialog.fireConfirm({
-							filterItems: oFilterDialog.getSelectedFilterItems(),
-							filterString: oFilterDialog.getSelectedFilterString()
-						});
+					oFilterDialog.fireConfirm({
+						filterItems: oFilterDialog.getSelectedFilterItems(),
+						filterString: oFilterDialog.getSelectedFilterString()
+					});
 					// }.bind(this), 300);
 				}
 			}
-			
+
 			// Set dialog sort 
 			oSortDialog.setSelectedSortItem("ActivityId");
 			oSortDialog.setSortDescending(false);
@@ -374,13 +406,13 @@ sap.ui.define([
 		 * @public
 		 */
 		onStockInputLiveChanged: function (oEvent) {
-    		var iValue = parseInt(oEvent.getSource().getValue().replace(/[^\d]/g, ''), 10);
-    		
-    		if (!isNaN(iValue)) {
-		        oEvent.getSource().setValue(iValue);
-		    } else {
-		        oEvent.getSource().setValue("");
-		    }
+			var iValue = parseInt(oEvent.getSource().getValue().replace(/[^\d]/g, ''), 10);
+
+			if (!isNaN(iValue)) {
+				oEvent.getSource().setValue(iValue);
+			} else {
+				oEvent.getSource().setValue("");
+			}
 		},
 
 		/**
@@ -500,23 +532,36 @@ sap.ui.define([
 			if (this._aUpdateQueue.length === 0) {
 				this._bUpdateInProgress = false;
 				this._addDisappearingMessages();
+				//avant
+				/*				setTimeout(function () {
+							// Refresh order's header
+							this._oHeaderModel.refresh();
+							// Refresh order's items
+							this._oItemsModel.refresh();
+							// Reset all changes done to the model
+							this._oItemsModel.resetChanges()
+						}.bind(this), 1000);*/
 
+				//aprés		
+
+				this._BusyOn();
 				setTimeout(function () {
-					// Refresh order's header
-					this._oHeaderModel.refresh();
 					// Refresh order's items
 					this._oItemsModel.refresh();
-					// Reset all changes done to the model
-					this._oItemsModel.resetChanges()
-				}.bind(this), 1000);
+					// Refresh order's header
+					this._oHeaderModel.refresh();
 
+				}.bind(this), 1000);
+				this._BusyOff(); //ibl+
+
+				this.getView().getModel("viewModel2").setProperty("/isOrderUpdating", false);
 				return;
 			}
 
 			// Get the next update from the queue
 			// Fill update object
 			const oUpdateItem = this._aUpdateQueue.shift();
-
+			this.getView().getModel("viewModel2").setProperty("/isOrderUpdating", true);
 			// Update the quantity in the backend using OData
 			this._oItemsModel.update(`/itemCmdSet(Ebeln='${oUpdateItem.Ebeln}',Ebelp='${oUpdateItem.Ebelp}')`, oUpdateItem, {
 				success: function (oData, oResponse) {
@@ -526,13 +571,20 @@ sap.ui.define([
 					// 	// this._oHeaderModel.refresh();
 					// }
 					// Process the next update in the queue
-					this._processUpdateQueue();
+				//	this._BusyOn();
+					setTimeout(function () {
+						//test imen IBL+ 16/01
+						this._processUpdateQueue();
+					}.bind(this), 1000);
+
+			//		this._BusyOff(); //ibl+
 				}.bind(this),
 				error: function (oError) {
 					// Process the next update in the queue
 					this._processUpdateQueue();
 				}.bind(this)
 			});
+
 		},
 
 		/**
@@ -556,10 +608,19 @@ sap.ui.define([
 			this._oItemsModel.create("/itemCmdSet", oCreateItem, {
 				success: function (oData, oResponse) {
 					// Handle successful update
-					// Refresh order's header
-					this._oHeaderModel.refresh();
-					// Refresh order's items
-					this._oItemsModel.refresh();
+					this._BusyOn();
+					setTimeout(function () {
+
+						// Refresh order's items
+						this._oItemsModel.refresh();
+
+						// Refresh order's header
+						this._oHeaderModel.refresh();
+						// Reset all changes done to the model
+						//	this._oItemsModel.resetChanges()
+					}.bind(this), 1000);
+
+					this._BusyOff();
 				}.bind(this),
 				error: function (oError) {
 					// Process the next update in the queue
@@ -655,8 +716,8 @@ sap.ui.define([
 					this._aSearchedItems.push(oItem);
 				}.bind(this));
 			}
-			
-			if(this._aSearchedItems && this._aSearchedItems.length > 0) {
+
+			if (this._aSearchedItems && this._aSearchedItems.length > 0) {
 				this._applyOrderItemsFilter();
 			} else {
 				this._oIconTabBar.setSelectedKey("orderItems");
@@ -942,11 +1003,12 @@ sap.ui.define([
 		onNavBack: function () {
 			// Get the router instance from the component
 			var oRouter = this.getOwnerComponent().getRouter();
-			
+
 			// Reset searched items
 			this._aSearchedItems = [];
 			// Go to the initial tab
-			this._oIconTabBar.setSelectedKey("orderItems");
+			this._oIconTabBar.setSelectedKey("ALL_ITEMS");
+			this.byId("oHierarchyBtn").setText("OPÉRATION COMMERCIALE");
 
 			// Navigate to Details Page
 			oRouter.navTo("RouteOrdersList", {}, true);
@@ -958,6 +1020,7 @@ sap.ui.define([
 		 * @private
 		 */
 		_onRouteMatched: function (oEvent) {
+			IsFistTime = "X"; //IBL+
 			var oArgs = oEvent.getParameter("arguments"),
 				oView = this.getView();
 
@@ -985,6 +1048,7 @@ sap.ui.define([
 
 			// Bind elements to the view
 			this._bindView();
+			this._bindHierarchyList("/" + "FamilleProdSet"); //IBL+
 		},
 
 		/**
@@ -1000,7 +1064,7 @@ sap.ui.define([
 			// Get Order's Items
 			this._bindOrderItems();
 			// Get Families
-			this._bindHierarchyList();
+			//		this._bindHierarchyList();
 			// Get Messages (for errors and warnings)
 			this._bindMessagePopover();
 		},
@@ -1026,26 +1090,27 @@ sap.ui.define([
 		},
 
 		/**
-		 * Bind the order's items to the Items Table
+		 * Bind the order's items to the Items Table IBL+
 		 * 
 		 * @private
 		 */
 		_bindOrderItems: function () {
 			this._oOrderItems.bindItems({
 				path: `/headerCmdSet('${this._ebeln}')/HeaderToItemSet`,
-				sorter: [
-					new sap.ui.model.Sorter("ActivityId", false),
-					new sap.ui.model.Sorter("FamilyId", false),
-					new sap.ui.model.Sorter("SubFamilyId", false),
-					new sap.ui.model.Sorter("Matnr", false)
-				],
+				sorter: [new sap.ui.model.Sorter("ActivityId", false), new sap.ui.model.Sorter("FamilyId", false), new sap.ui.model.Sorter(
+					"SubFamilyId", false), new sap.ui.model.Sorter("Matnr", false)],
 				template: this._oOrderItemsTemplate,
 				model: "itemsModel"
-			});
+			}).getBinding("items").attachDataReceived(function (o) {
+				if (this._oHierarchySelectList.getSelectedItem()) {
+					this.byId("oHierarchyBtn").setText(this._oHierarchySelectList.getSelectedItem().getText());
+				}
+			}.bind(this));
 
 			// Reset all changes done to the model
 			this._oItemsModel.resetChanges();
-
+			// Go to the initial tab
+			this._oIconTabBar.setSelectedKey("ALL_ITEMS");
 			// Set default tab
 			this.onTabSelected();
 		},
@@ -1073,16 +1138,6 @@ sap.ui.define([
 			})
 		},
 
-		/**
-		 * Bind the Hierarchy List
-		 * Used for the select popover in the active ranges
-		 * 
-		 * @private
-		 */
-		_bindHierarchyList: function () {
-
-		},
-		
 		/**
 		 * Init ViewSettingDialog
 		 * 
@@ -1184,6 +1239,193 @@ sap.ui.define([
 				duration: 5000, // Duration in milliseconds
 				width: "15em", // Toast width
 			});
-		}
+		},
+
+		/**********************************************************/
+		/////////////////gamme active
+		/**********************************************************/
+
+		/**
+		 * Open Hierarchy Popup
+		 * @public
+		 */
+		onHierarchyBtnClick: function (oEvent) {
+			this._oHierarchyPopover.openBy(oEvent.getSource());
+		},
+		/**
+		 * 
+		 * @public
+		 */
+		onPrevHierarchyBtnClick: function () {
+			var o = this._oHierarchySelectList,
+				iSelectedIndex = o.indexOfItem(o.getSelectedItem()),
+				iNextIndex = (iSelectedIndex - 1) % o.getItems().length;
+			if (iNextIndex < 0) {
+				iNextIndex = o.getItems().length - 1;
+			}
+			o.setSelection(o.getItemAt(iNextIndex));
+			o.fireSelectionChange();
+		},
+
+		/**
+		 * 
+		 * @public
+		 */
+		onNextHierarchyBtnClick: function () {
+			var o = this._oHierarchySelectList,
+				iSelectedIndex = o.indexOfItem(o.getSelectedItem()),
+				iNextIndex = (iSelectedIndex + 1) % o.getItems().length;
+			o.setSelection(o.getItemAt(iNextIndex));
+			o.fireSelectionChange();
+		},
+
+		_toggleHierarchyNavigation: function (bValue) {
+
+			this.byId("oHierarchyBtn").setVisible(bValue);
+			this.byId("oNextHierarchyBtn").setVisible(bValue);
+			this.byId("oPrevHierarchyBtn").setVisible(bValue);
+
+		},
+		/**
+		 *
+		 * @public
+		 */
+		onUpdateStarted: function () {
+
+		},
+
+		/**
+		 *
+		 * @public
+		 */
+		onUpdateFinished: function () {
+			console.log(this.getView().byId("oScrollContainer").getScrollDelegate()._scrollY);
+			if (this._oOrderItems.getItems().length === 0) {
+				this._oOrderItems.setNoDataText([this._oResourceBundle.getText("NoOrderItemText"),
+					this._oHierarchySelectList.getSelectedItem().getText()
+				].join(" "));
+			}
+			var sKey = this._oIconTabBar.getSelectedKey();
+			if (this.iIndexGloal !== 0 && this.iIndexGloal >= this.getView().byId("oScrollContainer").getScrollDelegate()._scrollY && sKey ===
+				'ALL_ITEMS') {
+				if (this.getView().byId("oScrollContainer").scrollTo(0, this.iIndexGloal, 500)) {
+					this._oOrderItems.getItems()[this.iIndexGloalFocus].focus();
+					this._BusyOff(); //Add busy fragment to load when back to "Gamme Active"  
+				}
+			}
+		},
+		_BusyOn: function () {
+			this.byId("oBusyDialog").open();
+		},
+		/**
+		 * hide loader icon
+		 * @private
+		 */
+		_BusyOff: function () {
+			this.byId("oBusyDialog").close();
+		},
+
+		_bindHierarchyList: function (sUrl) {
+			var oBtn = this.byId("oHierarchyBtn");
+			//	oItineraireModel = this.getModel("ItineraireModel");
+			/*  template item */
+			this._oHierarchySelectList = new sap.m.SelectList({
+				selectedKey: "AOPC"
+			}).bindItems({
+				path: sUrl,
+				template: new sap.ui.core.Item({
+					key: "{Famille}",
+					text: "{= ${FamilleDescr}.toUpperCase()}"
+				}),
+				/*   */
+				filters: [new sap.ui.model.Filter("Ebeln", sap.ui.model.FilterOperator.EQ, this._ebeln)]
+			}).attachSelectionChange(function () { // sur sélection d'une famille
+				this.iIndexGloal = 0;
+				this.iIndexGloalFocus = 0;
+				this._applyOrderItemsFilter_new(); // applique le filtre
+				this._oHierarchyPopover.close(); // ferme le popover des familles
+				oBtn.setText(this._oHierarchySelectList.getSelectedItem().getText());
+				this.byId("oScrollContainer").scrollTo(0, 0, 0);
+			}.bind(this));
+			this._oHierarchyPopover = new sap.m.ResponsivePopover({
+				title: this._oResourceBundle.getText("Hierarchy"),
+				content: [this._oHierarchySelectList],
+				// beginButton: [this._getHierarchyFooterButton()],	// FILTRE GAMME ACTIVE / TOUTE LA GAMME
+				placement: sap.m.PlacementType.Auto
+			});
+
+			//Bug 6342: [GA] Commande Critique : plus d'accès aux articles
+			if (IsFistTime === "X") {
+				this._applyOrderItemsFilterInitial();
+
+			}
+
+			this.getView().addDependent(this._oHierarchyPopover);
+		},
+
+		//Bug 6342: [GA] Commande Critique : plus d'accès aux articles
+		/**
+		 * Méthode qui permet de d'envoyer la famille AOPC lors de l'initialisation de ecran 2 
+		 * @function
+		 * @param {Object} oEvent event
+		 * @private
+		 */
+		_applyOrderItemsFilterInitial: function (sSorter) {
+			this.iIndexGloal = 0;
+			this.iIndexGloalFocus = 0;
+			var oTable = this._oOrderItems,
+				//	oSorter = null,
+				oFilters = [],
+
+				// filtre sur l'onglet sélectionné (toute la gamme ou ma commande)
+				//	sItemTabSelected = this._oIconTabBar.getSelectedKey(),
+				// filtre sur la famille sélectionnée
+				sItemHierSelected = this._oHierarchySelectList.getSelectedKey();
+			// on envoi la date de livraison à chaque demande de filtre	
+			//	oFilters.push(new Filter("DelivDate", sap.ui.model.FilterOperator.EQ, oItineraireModel.getData().DelivDate));
+			// recherche article demandé ou clique sur un message (warning ou erreur)
+			if (sItemHierSelected) {
+				oFilters.push(new Filter("FamilyId", sap.ui.model.FilterOperator.EQ, sItemHierSelected));
+				//	oFilters.push(new Filter("GammeActive", sap.ui.model.FilterOperator.EQ, this._bIsActiveAssortment));
+			}
+
+			oTable.getBinding("items").filter(oFilters);
+
+		},
+		/**
+		 * Apply the correct filter on selected change option.
+		 * @function
+		 * @private
+		 */
+		_applyOrderItemsFilter_new: function (sSorter) {
+			var oTable = this._oOrderItems,
+				oSorter = null,
+				oFilters = [],
+				// oItineraireModel = this.getModel("ItineraireModel"),
+				// filtre sur l'onglet sélectionné (toute la gamme ou ma commande)
+				sItemTabSelected = this._oIconTabBar.getSelectedKey();
+
+			if (this._oHierarchySelectList !== undefined) {
+				var sItemHierSelected = this._oHierarchySelectList.getSelectedKey();
+				oFilters.push(new Filter("FamilyId", sap.ui.model.FilterOperator.EQ, sItemHierSelected));
+				oTable.getBinding("items").filter(oFilters);
+			}
+
+		},
+		formatTransferOrderBtnEnabled: function (bIsOrderEditable, bIsOrderUpdating) {
+			return bIsOrderEditable && !bIsOrderUpdating;
+		},
+
+		/**
+		 * L Icon Load  est actif si des requetes sont 
+		 * en cours de mise à jour.
+		 * 
+		 * @public
+		 */
+		formatTransferOrderBtnVisible: function (bIsOrderEditable, bIsOrderUpdating) {
+
+				return !this.formatTransferOrderBtnEnabled(bIsOrderEditable, bIsOrderUpdating);
+
+			} //end
 	});
 });

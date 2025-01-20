@@ -12,7 +12,7 @@
 			<l:FixFlex class="idFixFlexVertical">
 				<l:fixContent>
 					<HBox alignItems="Start" justifyContent="Center" backgroundDesign="Translucent">
-						<ObjectIdentifier title="{i18n>autorisedRollsText}" text="{analyticsModel>/authorizedRolls}" class="sapUiSmallMargin text-center">
+						<ObjectIdentifier title="{i18n>autorisedRollsText}" text="{analyticsModel>/authorizedRolls}" class="sapUiSmallMargin text-center" visible="false">
 							<layoutData>
 								<FlexItemData baseSize="120px"/>
 							</layoutData>
@@ -107,10 +107,10 @@
 							<Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
 								<Label design="Bold" text="{i18n>orderStatusText}" />
 							</Column>
-							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle"  visible="false" >
 								<Label design="Bold" text="{i18n>artPenurieText}" />
 							</Column>
-							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle">
+							<Column minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline" hAlign="Center" vAlign="Middle" visible="false">
 								<Label design="Bold" text="{i18n>artEcreteText}" />
 							</Column>
 						</columns>
