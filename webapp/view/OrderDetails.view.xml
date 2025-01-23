@@ -33,7 +33,7 @@
 				</VBox>
 				<VBox class="sapUiSmallMargin">
 					<ObjectAttribute title="{i18n>autorisedRollsText}" text="{headerModel>ZzrollAuto}" class="sapUiTinyMarginBottom" visible="false"/>
-					<ObjectAttribute title="{i18n>platformeText}" text="{headerModel>Name1}" class="sapUiTinyMarginTop sapUiTinyMarginBottom"/>
+						<ObjectAttribute title="{i18n>platformeText}" text="{headerModel>Name1}" class="sapUiTinyMarginTop sapUiTinyMarginBottom"/>
 					<Text class="oOrderStatus" text="{ path: 'headerModel>Statut', formatter: '.formatter.statusFormatter' }">
 						<customData>
 							<core:CustomData key="color"
@@ -60,7 +60,7 @@
 				expandable="false">
 				<content>
 					<ScrollContainer id="oScrollContainer" horizontal="false" vertical="true" height="calc(100% - 180px)" width="100%">
-						<Table id="idItemsTable" items="{itemsModel>}" growing="true" growingScrollToLoad="true" growingThreshold="15" fixedLayout="false"
+						<Table id="idItemsTable" items="{itemsModel>}" growing="true" growingScrollToLoad="true" growingThreshold="700" fixedLayout="false"
 							alternateRowColors="true" sticky="HeaderToolbar,InfoToolbar,ColumnHeaders" updateStarted="onUpdateStarted" updateFinished="onUpdateFinished">
 							<headerToolbar>
 								<OverflowToolbar>
@@ -71,6 +71,9 @@
 									<!--	press=".handleActiveRangeButtonPressed"-->
 									<!--	enabled="false"-->
 									<!--/>-->
+								<Button  id="oIDRefresh" icon="sap-icon://synchronize" text="Actualiser couverture" type="Transparent" press=".handleRefreshButtonPressed" ariaLabelledBy="editButtonLabel" 
+								visible="{= ${viewModel>/selectedTab} === 'orderItems' }" />
+				
 									<Button id="oIDSort"  tooltip="{i18n>sortText}" icon="sap-icon://sort" press=".handleSortButtonPressed"
 										visible="{= ${viewModel>/selectedTab} === 'orderItems' }"/>
 									<Button id="oIDFiter" tooltip="{i18n>filterText}" icon="sap-icon://filter" press=".handleFilterButtonPressed"
@@ -125,7 +128,7 @@
 												<ObjectIdentifier title="{itemsModel>Maktx}"
 													text="{ parts: [ 'itemsModel>Matnr', 'itemsModel>Meins', 'itemsModel>MtstbActuel', 'itemsModel>MtstbFutur' ], formatter: '.formatter.itemInfosFormatter' }"/>
 												<VBox class="sapUiTinyMarginBegin">
-													<core:Icon class="sapUiSmallMarginBottom" size="1.2rem" src="sap-icon://pushpin-off" visible="{= ${Mrp} === true }"/>
+													<core:Icon class="sapUiSmallMarginBottom" size="1.2rem" src="sap-icon://pushpin-off" visible="{= ${itemsModel>Mrp} === true }"/>
 													<core:Icon size="1.2rem" src="sap-icon://delete" visible="{= ${itemsModel>Loekz} !== '' }" ariaLabelledBy="invisibleId"
 														tooltip="{itemsModel>Bezei}" press=".handleDeletePopoverPress"/>
 												</VBox>
@@ -145,7 +148,7 @@
 												submit=".onStockInputChanged" liveChange=".onStockInputLiveChanged "/>
 											<Button class="oDecrementButton" icon="sap-icon://less" press=".onDecrementPress" type="Transparent"
 												enabled="{ parts: [ 'itemsModel>Menge', 'itemsModel>Editable', 'headerModel>Editable' ], formatter: '.formatter.checkQtyDecrement' }"/>
-											<Button class="oIncrementButton" icon="sap-icon://add" press=".onIncrementPress" type="Transparent"
+											<Button class="oIncrementButton"   icon="sap-icon://add" press=".onIncrementPress" type="Transparent"
 												enabled="{ parts: [ 'itemsModel>Menge', 'itemsModel>QtyPenu', 'itemsModel>ZqteBloc', 'itemsModel>Editable', 'headerModel>Editable', 'itemsModel>NotActivatable' ], formatter: '.formatter.checkQtyIncrement' }"/>
 										</HBox>
 										<Text text="{ path: 'itemsModel>NbjCouverture', formatter: '.formatter.parseCouverageDaysIntoInteger' }"/>

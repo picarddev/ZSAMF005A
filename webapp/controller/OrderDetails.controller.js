@@ -11,6 +11,7 @@ sap.ui.define([
 	"use strict";
 	//ibl+
 	var IsFistTime; // IBL 
+	var is_qty_0; //ibl+
 	return Controller.extend("ZSAMF005A.ZSAMF005A.controller.OrderDetails", {
 		formatter: formatter,
 
@@ -314,6 +315,7 @@ sap.ui.define([
 				this.byId("oIDSort").setVisible(true);
 				this.byId("oIDFiter").setVisible(true);
 				this.byId("oIDDelete").setVisible(true);
+				this.byId("oIDRefresh").setVisible(true);
 				break;
 			default:
 				//ibl+ 
@@ -326,9 +328,10 @@ sap.ui.define([
 				this._applyOrderItemsFilter_new(); //add String Sorter arg to fix order/promo sort bug 29.08.2019
 				this._toggleHierarchyNavigation(true);
 				this.byId("vsdFilterLabel").setText("");
-				this.byId("oIDSort").setVisible(false);
-				this.byId("oIDFiter").setVisible(false);
+				this.byId("oIDSort").setVisible(true);
+				this.byId("oIDFiter").setVisible(true);
 				this.byId("oIDDelete").setVisible(false);
+				this.byId("oIDRefresh").setVisible(true);
 
 			}
 		},
@@ -454,6 +457,7 @@ sap.ui.define([
 				oParentHBox = oEvent.getSource().getParent(),
 				oRowItem = oParentHBox.getParent(),
 				oInput = oParentHBox.getItems()[0];
+		      
 
 			// Get the corresponding item from the model
 			var oContext = oParentHBox.getBindingContext("itemsModel"),
@@ -491,18 +495,27 @@ sap.ui.define([
 					return;
 				}
 			}
+
+			if (iNewQuantity == 0) {
+				is_qty_0 = 'X';
+			}
 			// Set input value
 			oInput.setValue(iNewQuantity);
 			// Update the quantity in the model
 			oModel.setProperty(sPath + "/Menge", iNewQuantity);
 
+
+	
 			if (oItem.Draft === true) {
 				// Make the item no longer a draft
-				oModel.setProperty(sPath + "/Draft", false);
+			//	oModel.setProperty(sPath + "/Draft", false); // this is not correct IBL in success do this
 				// Set item quantity
 				oItem.Menge = iNewQuantity + ".000";
 				// Create the item in the order
-				this._createItem(oItem);
+					oModel.setProperty(sPath + "/Editable", false);
+				//	this._BusyOn();
+				this._createItem(oItem, oModel, sPath);
+				//	this._BusyOff();
 			} else {
 				// Add the update to the queue
 				this._aUpdateQueue.push({
@@ -518,6 +531,7 @@ sap.ui.define([
 					// Set the flag to true before processing updates
 					this._bUpdateInProgress = true;
 					this._processUpdateQueue();
+					 
 				}
 			}
 		},
@@ -544,15 +558,22 @@ sap.ui.define([
 
 				//aprés		
 
-				this._BusyOn();
+				//		this._BusyOn();
 				setTimeout(function () {
 					// Refresh order's items
-					this._oItemsModel.refresh();
+					if (is_qty_0 == 'X') { //ibl- 21/01
+						is_qty_0 == '';
+						this._oItemsModel.refresh();
+
+					}
+
 					// Refresh order's header
 					this._oHeaderModel.refresh();
+					// Reset all changes done to the model
+					this._oItemsModel.resetChanges(); //new IBL+
 
 				}.bind(this), 1000);
-				this._BusyOff(); //ibl+
+				//		this._BusyOff(); //ibl+
 
 				this.getView().getModel("viewModel2").setProperty("/isOrderUpdating", false);
 				return;
@@ -563,6 +584,7 @@ sap.ui.define([
 			const oUpdateItem = this._aUpdateQueue.shift();
 			this.getView().getModel("viewModel2").setProperty("/isOrderUpdating", true);
 			// Update the quantity in the backend using OData
+			 
 			this._oItemsModel.update(`/itemCmdSet(Ebeln='${oUpdateItem.Ebeln}',Ebelp='${oUpdateItem.Ebelp}')`, oUpdateItem, {
 				success: function (oData, oResponse) {
 					// Handle successful update
@@ -571,29 +593,37 @@ sap.ui.define([
 					// 	// this._oHeaderModel.refresh();
 					// }
 					// Process the next update in the queue
-				//	this._BusyOn();
+					//	this._BusyOn();
 					setTimeout(function () {
 						//test imen IBL+ 16/01
 						this._processUpdateQueue();
 					}.bind(this), 1000);
 
-			//		this._BusyOff(); //ibl+
+					//		this._BusyOff(); //ibl+
 				}.bind(this),
 				error: function (oError) {
 					// Process the next update in the queue
+					MessageBox.error(JSON.parse(oError.responseText).error.message.value);
 					this._processUpdateQueue();
 				}.bind(this)
 			});
+		 
 
 		},
 
+		handleRefreshButtonPressed: function (oItem) {
+
+			// Refresh order's items
+			this._oItemsModel.refresh();
+
+		},
 		/**
 		 * Send OData request to create
 		 * the wanted item
 		 * 
 		 * @private
 		 */
-		_createItem: function (oItem) {
+		_createItem: function (oItem, oModel, sPath) {
 			// Item to create
 			const oCreateItem = {
 				Ebeln: oItem.Ebeln,
@@ -608,6 +638,10 @@ sap.ui.define([
 			this._oItemsModel.create("/itemCmdSet", oCreateItem, {
 				success: function (oData, oResponse) {
 					// Handle successful update
+					
+						// Make the item no longer a draft
+				oModel.setProperty(sPath + "/Draft", false); 
+				
 					this._BusyOn();
 					setTimeout(function () {
 
@@ -623,7 +657,12 @@ sap.ui.define([
 					this._BusyOff();
 				}.bind(this),
 				error: function (oError) {
+					
+					 this._aUpdateQueue.shift();
+					//set the model draft = false 
+					oModel.setProperty(sPath + "/Draft", false);
 					// Process the next update in the queue
+					MessageBox.error(JSON.parse(oError.responseText).error.message.value);
 					this._processUpdateQueue();
 				}.bind(this)
 			});
@@ -1084,7 +1123,7 @@ sap.ui.define([
 				oRouter.getTargets().display("notFound");
 			} else {
 				if (oData.Guname) {
-					MessageBox.error(this._oResourceBundle.getText("orderIsInEditModeBy", [oData.Guname]));
+					//	MessageBox.error(this._oResourceBundle.getText("orderIsInEditModeBy", [oData.Guname]));
 				}
 			}
 		},
